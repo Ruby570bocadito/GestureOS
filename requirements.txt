@@ -1,0 +1,14 @@
+opencv-python>=4.8.0
+mediapipe>=0.10.9
+numpy>=1.24.0
+PyQt6>=6.6.0
+PyAutoGUI>=0.9.54
+pynput>=1.7.6
+python-pptx>=0.6.23
+pyttsx3>=2.90
+speechrecognition>=3.10.0
+pyaudio>=0.2.14
+ollama>=0.1.0
+Pillow>=10.1.0
+mss>=9.0.1
+psutil>=5.9.6
