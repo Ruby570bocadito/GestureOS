@@ -110,23 +110,14 @@ COMMAND_PATTERNS: List[Tuple] = [
     _mk(r"(scroll arriba|subir p[aá]gina)", "scroll_up"),
     _mk(r"(scroll abajo|bajar p[aá]gina)", "scroll_down"),
 
+    # Escribir texto (MUST be before press_key patterns to avoid "esc" matching "escribe")
+    _mk(r"(escribe|escribir|tipea|type)\s+(.+)", "write_text"),
+
     # Teclas
     _mk(r"(enter|intro|aceptar)", "press_key", {"key": "enter"}),
     _mk(r"(escape|cancelar|esc)", "press_key", {"key": "escape"}),
     _mk(r"(borrar letra|backspace)", "press_key", {"key": "backspace"}),
     _mk(r"(tabulador| tab)", "press_key", {"key": "tab"}),
-
-    # Sistema
-    _mk(r"(escritorio|mostrar escritorio)", "show_desktop"),
-    _mk(r"(bloquear pantalla|bloquear)", "lock_screen"),
-    _mk(r"(apagar voz|desactivar voz|stop voice)", "stop_voice"),
-
-    # Modo agente directo
-    _mk(r"(modo agente|activar modo agente|modo directo|modo ia)", "toggle_agent_mode"),
-    _mk(r"(desactivar modo agente|salir modo agente|modo normal)", "toggle_agent_mode"),
-
-    # Escribir texto
-    _mk(r"(escribe|escribir|tipea|type)\s+(.+)", "write_text"),
 
     # Navegación web
     _mk(r"(recargar|actualizar|ctrl r|f5)", "hotkey", {"keys": "f5"}),
@@ -200,7 +191,9 @@ class VoiceAssistant:
         self._on_state_change_callback: Optional[Callable] = None
 
         self._last_command_time = 0.0
-        self._command_cooldown  = 1.5
+        self._command_cooldown = 2.0
+        self._is_speaking = False
+        self._voice_enabled = True
 
     # ─────────────────── Lifecycle ─────────────────────────────────────────
 
@@ -227,7 +220,15 @@ class VoiceAssistant:
         self._set_state(VoiceState.LISTENING if listening else VoiceState.IDLE)
 
     def is_listening(self) -> bool:
-        return self._is_listening
+        return self._is_listening and not self._is_speaking
+
+    def is_voice_enabled(self) -> bool:
+        return self._voice_enabled
+
+    def set_voice_enabled(self, enabled: bool):
+        self._voice_enabled = enabled
+        if not enabled:
+            self._is_listening = False
 
     def get_state(self) -> VoiceState:
         return self.state
@@ -243,16 +244,21 @@ class VoiceAssistant:
     # ─────────────────── TTS ───────────────────────────────────────────────
 
     def speak(self, text: str, wait: bool = False):
-        if not self._tts_available:
+        if not self._tts_available or not self._voice_enabled:
             return
         def _do():
             try:
+                self._is_speaking = True
+                self._is_listening = False
                 self._set_state(VoiceState.SPEAKING)
+                time.sleep(0.3)
                 self._tts.say(text)
                 self._tts.runAndWait()
+                time.sleep(0.5)
             except Exception:
                 pass
             finally:
+                self._is_speaking = False
                 self._set_state(VoiceState.IDLE)
         if wait:
             _do()
@@ -284,7 +290,7 @@ class VoiceAssistant:
 
     def _listening_loop(self):
         while self._is_active:
-            if not self._is_listening:
+            if not self._is_listening or self._is_speaking or not self._voice_enabled:
                 time.sleep(0.1)
                 continue
             try:

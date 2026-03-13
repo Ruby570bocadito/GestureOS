@@ -15,12 +15,14 @@ from src.core.gesture_recognizer import GestureRecognizer, GestureType
 from src.input.virtual_mouse import VirtualMouse
 from src.input.virtual_keyboard import VirtualKeyboard
 from src.ui.virtual_keyboard_widget import VirtualKeyboardWidget
-from src.input.voice_assistant import VoiceAssistant, VoiceCommand
 from src.ai.desktop_agent import DesktopAgent
 from src.ai.vision_helper import VisionHelper
 from src.utils.system_control import SystemController
 from src.utils.action_executor import ActionExecutor
 from src.core.config import OVERLAY_FPS
+
+# Voice lazy loaded to avoid startup delay
+VoiceAssistant = None
 
 
 class GestureOS:
@@ -49,13 +51,8 @@ class GestureOS:
         self.keyboard_widget = VirtualKeyboardWidget()
         self.keyboard_widget.closed.connect(self._on_keyboard_widget_closed)
 
-        try:
-            self.voice_assistant = VoiceAssistant()
-            self.voice_assistant.on_command(self._on_voice_command)
-            self.voice_assistant.on_state_change(self._on_voice_state_changed)
-        except Exception as e:
-            print(f"Voice assistant init error: {e}")
-            self.voice_assistant = None
+        self._voice_assistant_instance = None
+        self._voice_initialized = False
 
         try:
             self.desktop_agent = DesktopAgent()
@@ -89,6 +86,22 @@ class GestureOS:
         self._shortcut_cooldown    = 1.5   # seconds between shortcut triggers
 
         self._setup_callbacks()
+
+    @property
+    def voice_assistant(self):
+        if self._voice_initialized:
+            return self._voice_assistant_instance
+        self._voice_initialized = True
+        try:
+            from src.input.voice_assistant import VoiceAssistant
+            self._voice_assistant_instance = VoiceAssistant()
+            self._voice_assistant_instance.on_command(self._on_voice_command)
+            self._voice_assistant_instance.on_state_change(self._on_voice_state_changed)
+            self.main_window.log_message("Asistente de voz cargado")
+        except Exception as e:
+            self._voice_assistant_instance = None
+            self.main_window.log_message(f"Voz no disponible: {e}")
+        return self._voice_assistant_instance
 
     def _setup_callbacks(self):
         self.virtual_mouse.set_gesture_callback(self._on_mouse_gesture)
@@ -524,9 +537,18 @@ class GestureOS:
             action   = response.get("action", "respond")
             params   = response.get("params", {})
             expl     = response.get("explanation", "")
+            text     = params.get("text", "")
+            
             self.main_window.log_message(f"🤖 IA: {expl}")
             self.overlay.add_log(f"🤖 {expl[:22]}")
+            
             self.action_executor.execute(action, params)
+            
+            if text and self.voice_assistant and self.voice_assistant.is_voice_enabled():
+                short_text = text[:150] + "..." if len(text) > 150 else text
+                time.sleep(0.5)
+                self.voice_assistant.speak(short_text)
+                
         except Exception as e:
             self.main_window.log_message(f"Error agente: {e}")
 

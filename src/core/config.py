@@ -17,8 +17,8 @@ RIGHT_CLICK_GESTURE = "thumbs_down"
 SCROLL_GESTURE = "pointing_up"
 DRAG_GESTURE = "thumbs_up"
 
-OLLAMA_MODEL = "qwen3.5:9b"
-OLLAMA_VISION_MODEL = "qwen3-vl:30b"
+OLLAMA_MODEL = "llama3:8b"
+OLLAMA_VISION_MODEL = "llama3:8b"
 OLLAMA_BASE_URL = "http://localhost:11434"
 
 VOICE_LANGUAGE = "es"

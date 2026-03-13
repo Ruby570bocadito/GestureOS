@@ -63,19 +63,22 @@ class ActionExecutor:
     # ─────────── Write text ──────────────────────────────────────────
 
     def _do_write(self, p):
-        """Type given text with pyautogui (from AI action)."""
-        text = p.get("text", "")
-        if text:
-            pyautogui.write(text, interval=0.03)
-            self._log(f"Escribiendo: {text}")
+        try:
+            text = p.get("text", "")
+            if text:
+                pyautogui.write(text, interval=0.03)
+                self._log(f"Escribiendo: {text}")
+        except Exception as e:
+            self._log(f"Error escribiendo: {e}")
 
     def _do_write_text(self, p):
-        """Voice command 'escribe [texto]' — extract group-2 text."""
-        # The regex puts the literal text in p["text"] or as group 2
-        text = p.get("text", p.get("query", ""))
-        if text:
-            pyautogui.write(text, interval=0.03)
-            self._log(f"Escribiendo: {text}")
+        try:
+            text = p.get("text", p.get("query", ""))
+            if text:
+                pyautogui.write(text, interval=0.03)
+                self._log(f"Escribiendo: {text}")
+        except Exception as e:
+            self._log(f"Error escribiendo: {e}")
 
     def _do_toggle_agent_mode(self, p):
         # Handled in main.py; this stub prevents 'unknown action' log
@@ -115,17 +118,23 @@ class ActionExecutor:
         app = p.get("app", "")
         cmd = self._APP_COMMANDS.get(app)
         if cmd:
-            subprocess.Popen(cmd, shell=True)
-            self._log(f"Abriendo: {app}")
-            self._speak(f"Abriendo {app}")
+            try:
+                subprocess.Popen(cmd, shell=True, creationflags=subprocess.CREATE_NEW_CONSOLE)
+                self._log(f"Abriendo: {app}")
+            except Exception as e:
+                self._log(f"Error打开 {app}: {e}")
         else:
-            self._log(f"App desconocida: {app}")
+            self._log(f"App未知: {app}")
 
     # ─────────────── Window management ─────────────────────────────────────
 
     def _do_close_window(self, p):
-        pyautogui.hotkey("alt", "F4")
-        self._log("Cerrando ventana")
+        try:
+            time.sleep(0.2)
+            pyautogui.hotkey("ctrl", "w")
+            self._log("Cerrando pestaña/ventana")
+        except Exception as e:
+            self._log(f"Error cerrando: {e}")
 
     def _do_minimize_window(self, p):
         pyautogui.hotkey("win", "down")

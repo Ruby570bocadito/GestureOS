@@ -113,46 +113,57 @@ class OverlayWidget(QWidget):
     # ─────────────── Paint ─────────────────────────────────────────────────
 
     def paintEvent(self, event):
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        painter = None
+        try:
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
 
-        # ── Camera frame ──
-        painter.fillRect(self.rect(), QColor(0, 0, 0, 0))
-        if self._current_frame is not None:
-            frame_rgb = cv2.cvtColor(self._current_frame, cv2.COLOR_BGR2RGB)
-            h, w, ch = frame_rgb.shape
-            bytes_per_line = ch * w
-            qt_image = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-            pixmap = QPixmap.fromImage(qt_image)
-            painter.drawPixmap(0, 0, pixmap.scaled(
-                self.frame_width, self.frame_height,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            ))
+            # ── Camera frame ──
+            painter.fillRect(self.rect(), QColor(0, 0, 0, 0))
+            if self._current_frame is not None:
+                try:
+                    frame_rgb = cv2.cvtColor(self._current_frame, cv2.COLOR_BGR2RGB)
+                    h, w, ch = frame_rgb.shape
+                    bytes_per_line = ch * w
+                    qt_image = QImage(frame_rgb.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
+                    pixmap = QPixmap.fromImage(qt_image)
+                    painter.drawPixmap(0, 0, pixmap.scaled(
+                        self.frame_width, self.frame_height,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation
+                    ))
+                except Exception:
+                    pass
 
-        # ── Semi-transparent bottom bar for text ──
-        bar_h = 56
-        painter.fillRect(0, self.frame_height - bar_h, self.frame_width, bar_h,
-                         QColor(0, 0, 0, 160))
+            # ── Semi-transparent bottom bar for text ──
+            bar_h = 56
+            painter.fillRect(0, self.frame_height - bar_h, self.frame_width, bar_h,
+                             QColor(0, 0, 0, 160))
 
-        # ── Status indicators (top-left) ──
-        painter.setFont(QFont("Arial", 9, QFont.Weight.Bold))
-        dot_colors = [
-            (self._mouse_enabled, "Mouse", QColor(0, 220, 80), QColor(180, 60, 60)),
-            (self._keyboard_enabled, "Teclado", QColor(0, 200, 255), QColor(180, 60, 60)),
-        ]
-        y_off = 18
-        for enabled, label, on_col, off_col in dot_colors:
-            col = on_col if enabled else off_col
-            painter.setBrush(QBrush(col))
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.drawEllipse(6, y_off - 8, 9, 9)
-            painter.setPen(col)
-            painter.drawText(20, y_off, f"{label}: {'ON' if enabled else 'OFF'}")
-            y_off += 16
+            # ── Status indicators (top-left) ──
+            painter.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+            dot_colors = [
+                (self._mouse_enabled, "Mouse", QColor(0, 220, 80), QColor(180, 60, 60)),
+                (self._keyboard_enabled, "Teclado", QColor(0, 200, 255), QColor(180, 60, 60)),
+            ]
+            y_off = 18
+            for enabled, label, on_col, off_col in dot_colors:
+                col = on_col if enabled else off_col
+                painter.setBrush(QBrush(col))
+                painter.setPen(Qt.PenStyle.NoPen)
+                painter.drawEllipse(6, y_off - 8, 9, 9)
+                painter.setPen(col)
+                painter.drawText(20, y_off, f"{label}: {'ON' if enabled else 'OFF'}")
+                y_off += 16
 
-        # ── FPS (top-right) ──
+            # ── FPS (top-right) ──
+            painter.setPen(QColor(100, 200, 255))
+            painter.setFont(QFont("Arial", 9))
+            painter.drawText(self.frame_width - 55, 14, f"FPS: {self._fps}")
+
+        except Exception:
+            pass
         painter.setPen(QColor(100, 200, 255))
         painter.setFont(QFont("Arial", 9))
         painter.drawText(self.frame_width - 55, 14, f"FPS: {self._fps}")
