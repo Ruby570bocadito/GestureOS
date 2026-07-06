@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Screenshots
+screenshots/
+
+# Temp files
+temp_screenshot.png
+gestureos_vision_*.png
+handscontrol_vision_*.png
+
+# MediaPipe cache
+.mediapipe/
+
+# Session files
+SesionOpencode.txt
+
+# Model files (downloadable)
+*.task
+
+# Docs binaries
+*.docx
+*.pdf
+
+# Ollama data
+ollama/

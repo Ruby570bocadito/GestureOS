@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "handscontrol"
+version = "1.0.0"
+description = "HandsControl — Controla tu PC con Gestos, Voz e IA Local"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "HandsControl Team"}
+]
+keywords = ["gesture-control", "hand-tracking", "mediapipe", "ollama", "voice-control", "pyqt6", "accessibility"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+dependencies = [
+    "opencv-python>=4.8.0",
+    "mediapipe>=0.10.9",
+    "numpy>=1.24.0",
+    "PyQt6>=6.6.0",
+    "PyAutoGUI>=0.9.54",
+    "pynput>=1.7.6",
+    "python-pptx>=0.6.23",
+    "pyttsx3>=2.90",
+    "speechrecognition>=3.10.0",
+    "pyaudio>=0.2.14",
+    "ollama>=0.1.0",
+    "Pillow>=10.1.0",
+    "mss>=9.0.1",
+    "psutil>=5.9.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "mypy>=1.8.0",
+    "black>=24.0.0",
+]
+
+[project.scripts]
+handscontrol = "main:main"
+
+[project.urls]
+Homepage = "https://github.com/Ruby570bocadito/HandsControl"
+Issues = "https://github.com/Ruby570bocadito/HandsControl/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*", "main*"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["src"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
